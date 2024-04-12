@@ -1,10 +1,18 @@
 from pypdf import PdfReader
 import pandas as pd
 import csv
-import os
+from pathlib import Path
 
 
 PUNCTUATION = '''!()-[]{};:'"\,<>./?@#$%^&*_~'''
+
+def excel_column_to_int(column):
+    n = len(column)
+    column_num = 0
+    for i in range(n):
+        digit = ord(column[n - i - 1]) - ord('A') + 1
+        column_num += digit * (26 ** i)
+    return column_num -1
 
 
 def remove_punctuation(text):
@@ -35,40 +43,45 @@ def xlsx_to_csv(xlsx_filepath):
     
 def delete_temp_csv():
     """Deletes the temporary csv file created by xlsx_to_csv."""
-    os.remove("temp.csv")
+    Path.unlink(Path("temp.csv"))
 
 
-def read_csv_to_dict(csv_filepath):
+def read_csv_to_dict(csv_filepath, key_col=0, val_col=1):
     """Reads a csv file and returns a dictionary with the 
        first column as keys and the second column as values."""
     csv_dict = {}
     with open(csv_filepath, 'r') as f:
         reader = csv.reader(f)
-        for key, value in reader:
+        for row in reader:
+            key, value = row[key_col], row[val_col]
             if type(key) == str:
                 key = key.lower()
             csv_dict[key] = value
     return csv_dict
             
             
-def read_xlsx_to_dict(xlsx_filepath):
+def read_xlsx_to_dict(xlsx_filepath, key_col, val_col):
     """Reads an xlsx file and returns a dictionary with the
        first column as keys and the second column as values."""
     xlsx_to_csv(xlsx_filepath)
-    csv_dict = read_csv_to_dict('temp.csv')
+    csv_dict = read_csv_to_dict('temp.csv', key_col, val_col)
     delete_temp_csv()
     return csv_dict
 
 
-def find_values_in_pdf(pdf_filepath, excel_filepath):
+def find_values_in_pdf(pdf_filepath, excel_filepath, excel_key_col, excel_val_col):
     """Finds keys from an excel file in a pdf file and returns a list of pairs."""
-    pdf_words = read_pdf_text(pdf_filepath) 
+    pdf_filepath = Path(pdf_filepath)
+    excel_filepath = Path(excel_filepath)
     
-    excel_extension = excel_filepath.split('.')[-1]
-    if excel_extension == 'xlsx':
-        csv_dict = read_xlsx_to_dict(excel_filepath)
+    key_col = excel_column_to_int(excel_key_col)
+    val_col = excel_column_to_int(excel_val_col)
+    
+    pdf_words = read_pdf_text(pdf_filepath)
+    if excel_filepath.suffix == '.xlsx':
+        csv_dict = read_xlsx_to_dict(excel_filepath, key_col, val_col)
     else:
-        csv_dict = read_csv_to_dict(excel_filepath)
+        csv_dict = read_csv_to_dict(excel_filepath, key_col, val_col)
         
     keys = set(csv_dict.keys())
     keys_in_text = []
@@ -90,12 +103,12 @@ def save_pairs(destination, pairs, original_filename):
         f.writelines(pair_strings)
         
         
-def find_and_save_values_in_pdf(pdf_filepath, excel_filepath, output_directory, output_filename):
+def find_and_save_values_in_pdf(pdf_filepath, excel_filepath, output_directory, output_filename, excel_key_col, excel_val_col):
     """Finds keys from an excel file in a pdf file and saves the pairs to a text file."""
-    # TODO: Use OS for filepaths.
-    pairs = find_values_in_pdf(pdf_filepath, excel_filepath)
-    destination = os.path.join(output_directory, output_filename)
-    save_pairs(destination, pairs, excel_filepath)    
+    pairs = find_values_in_pdf(pdf_filepath, excel_filepath, excel_key_col, excel_val_col)
+    path = Path(output_directory)
+    destination = path / (output_filename + '.txt')
+    save_pairs(destination, pairs, excel_filepath.split('/')[-1])    
 
 
 # def xlsx_test():
