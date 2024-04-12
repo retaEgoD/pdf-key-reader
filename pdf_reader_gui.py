@@ -8,7 +8,7 @@ import traceback
 
 ctypes.windll.shcore.SetProcessDpiAwareness(True)
 
-# TODO reorder excel and pdf, format and docs
+# TODO reorder excel and pdf, format and docs, seperate to changeable widgets and non-changeable widgets
 
 class PDFReaderGUI:
         
@@ -18,7 +18,7 @@ class PDFReaderGUI:
             """
             
             self.root = tk.Tk()
-            self.root.geometry('950x350')
+            self.root.geometry('1000x320')
             self.root.title('PDF Key Reader')
 
             self.pdf_filepath = ''
@@ -31,7 +31,7 @@ class PDFReaderGUI:
             self.title_label.pack()
 
             # Create a label to explain what the program does
-            self.description_label = ttk.Label(text="This program reads a set of key values from an excel file and checks which ones are present in a PDF, then outputs the result as a text file in the desired directory. By default, the key column is column A and the value column is column B. Press the buttons to select your files.\n", wraplength=800, font=("Arial", 11, "italic"), justify="center")
+            self.description_label = ttk.Label(text="This program reads a set of key values from an excel file and checks which ones are present in a PDF, then outputs the result as a text file in the desired directory. By default, the key column is column A and the value column is column B. Press the buttons to select your files, change the column entries to select the excel columns.\n", wraplength=800, font=("Arial", 11, "italic"), justify="center", foreground='spring green')
             self.description_label.pack(pady=10)
             
             
@@ -53,6 +53,15 @@ class PDFReaderGUI:
             self.excel_button.grid(row=2, column=0, pady=3)
             self.excel_filepath_label = ttk.Label(self.widget_frame)
             self.excel_filepath_label.grid(row=2, column=1)
+            
+            self.excel_column_label = ttk.Label(self.widget_frame, text="Columns:")
+            self.excel_key_entry = ttk.Entry(self.widget_frame, font=("Arial", 11), width=3)
+            self.excel_value_entry = ttk.Entry(self.widget_frame, font=("Arial", 11), width=3)
+            self.excel_key_entry.insert(0, 'A')
+            self.excel_value_entry.insert(0, 'B')
+            self.excel_column_label.grid(row=1, column=2)
+            self.excel_key_entry.grid(row=2, column=2)
+            self.excel_value_entry.grid(row=2, column=3)
             
             self.pdf_button = ttk.Button(self.widget_frame, text="Select PDF File", command=self.select_pdf_file)
             self.pdf_button.grid(row=1, column=0, pady=3)
@@ -119,7 +128,9 @@ class PDFReaderGUI:
                 find_and_save_values_in_pdf(self.pdf_filepath, 
                                             self.excel_filepath, 
                                             self.output_directory, 
-                                            self.output_filename_entry.get(), "A", "B")
+                                            self.output_filename_entry.get(), 
+                                            self.excel_key_entry.get(), 
+                                            self.excel_value_entry.get())
                 self.confirm_label.config(text="Success.")
                 
             except Exception as error:

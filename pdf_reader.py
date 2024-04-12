@@ -12,7 +12,7 @@ def excel_column_to_int(column):
     for i in range(n):
         digit = ord(column[n - i - 1]) - ord('A') + 1
         column_num += digit * (26 ** i)
-    return column_num -1
+    return column_num - 1
 
 
 def remove_punctuation(text):
@@ -74,8 +74,8 @@ def find_values_in_pdf(pdf_filepath, excel_filepath, excel_key_col, excel_val_co
     pdf_filepath = Path(pdf_filepath)
     excel_filepath = Path(excel_filepath)
     
-    key_col = excel_column_to_int(excel_key_col)
-    val_col = excel_column_to_int(excel_val_col)
+    key_col = excel_column_to_int(excel_key_col.upper())
+    val_col = excel_column_to_int(excel_val_col.upper())
     
     pdf_words = read_pdf_text(pdf_filepath)
     if excel_filepath.suffix == '.xlsx':
@@ -109,19 +109,3 @@ def find_and_save_values_in_pdf(pdf_filepath, excel_filepath, output_directory, 
     path = Path(output_directory)
     destination = path / (output_filename + '.txt')
     save_pairs(destination, pairs, excel_filepath.split('/')[-1])    
-
-
-# def xlsx_test():
-#     excel = "testing/excel_test.xlsx"
-#     pdf = "testing/test.pdf"
-#     destination = "testing/new_test/result.txt"
-#     pairs = find_values_in_pdf(pdf, excel)
-#     save_pairs(destination, pairs, excel)
-
-
-# def main():
-#     xlsx_test()
-    
-
-# if __name__ == '__main__':
-#     main()
