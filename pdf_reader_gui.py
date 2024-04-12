@@ -2,9 +2,11 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter.filedialog import askopenfilename, askdirectory
 import sv_ttk
+
 import ctypes
-from pdf_reader import find_and_save_values_in_pdf
 import traceback
+
+from pdf_reader import find_and_save_values_in_pdf
 
 ctypes.windll.shcore.SetProcessDpiAwareness(True)
 
