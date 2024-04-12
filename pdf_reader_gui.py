@@ -4,82 +4,140 @@ from tkinter.filedialog import askopenfilename, askdirectory
 import sv_ttk
 import ctypes
 from pdf_reader import find_and_save_values_in_pdf
+import traceback
 
 ctypes.windll.shcore.SetProcessDpiAwareness(True)
 
-# TODO Add entry field for output filename, add text explaination, reorder excel and pdf, format
+# TODO reorder excel and pdf, format and docs
 
-class PDF_Reader_GUI:
+class PDFReaderGUI:
         
         def __init__(self):
+            """
+            Initialize the GUI application.
+            """
             
             self.root = tk.Tk()
+            self.root.geometry('950x350')
+            self.root.title('PDF Key Reader')
+
             self.pdf_filepath = ''
             self.excel_filepath = ''
             self.output_directory = ''
-            self.output_filename = 'testing.txt'
+            self.output_filename = ''
+            
+            # Create a label for the title
+            self.title_label = ttk.Label(text="PDF Key Reader", font=("Arial", 24, "bold"))
+            self.title_label.pack()
+
+            # Create a label to explain what the program does
+            self.description_label = ttk.Label(text="This program reads a set of key values from an excel file and checks which ones are present in a PDF, then outputs the result as a text file in the desired directory. By default, the key column is column A and the value column is column B. Press the buttons to select your files.\n", wraplength=800, font=("Arial", 11, "italic"), justify="center")
+            self.description_label.pack(pady=10)
             
             
-            self.pdf_filepath_label = ttk.Label(font=("Arial", 14))
-            self.pdf_frame = ttk.Frame(master=self.root, borderwidth=1)
-            self.pdf_label = ttk.Label(master=self.pdf_frame, text="Select a PDF file:", font=("Arial", 14))
-            self.pdf_button = tk.Button(master=self.pdf_frame, text="Select PDF File", font=("Arial", 14), borderwidth=5, relief=tk.GROOVE, command=self.select_pdf_file)
-            
-            self.pdf_label.pack()
-            self.pdf_button.pack()
-            self.pdf_frame.grid(row=1, column=0)
-            self.pdf_filepath_label.grid(row=1, column=1)
-            
-            self.excel_filepath_label = ttk.Label(font=("Arial", 14))
-            self.excel_frame = ttk.Frame(master=self.root, borderwidth=1, width=2000, height=1000)
-            self.excel_label = ttk.Label(master=self.excel_frame, text="Select an Excel file:", font=("Arial", 14), anchor='w')
-            self.excel_button = tk.Button(master=self.excel_frame, text="Select Excel File", font=("Arial", 14), borderwidth=5, relief=tk.GROOVE, command=self.select_excel_file)
-            
-            self.excel_label.pack()
-            self.excel_button.pack()
-            self.excel_frame.grid(row=0, column=0)
-            self.excel_filepath_label.grid(row=0, column=1)
-            
-            
-            self.output_directory_label = ttk.Label(font=("Arial", 14))
-            self.output_frame = ttk.Frame(master=self.root, borderwidth=1)
-            self.output_label = ttk.Label(master=self.output_frame, text="Select an output location:", font=("Arial", 14))
-            self.output_button = tk.Button(master=self.output_frame, text="Select Output Location", font=("Arial", 14), borderwidth=5, relief=tk.GROOVE, command=self.select_output_directory)
-            
-            self.output_label.pack()
-            self.output_button.pack()
-            self.output_frame.grid(row=2, column=0)
-            self.output_directory_label.grid(row=2, column=1)
-            
-            self.find_values_button = tk.Button(text="Find Values", font=("Arial", 14), borderwidth=5, relief=tk.GROOVE, command=lambda: find_and_save_values_in_pdf(self.pdf_filepath, 
-                                                                                                                                                                     self.excel_filepath, 
-                                                                                                                                                                     self.output_directory, 
-                                                                                                                                                                     self.output_filename))
-            self.find_values_button.grid(row=3, column=1)
-            
-            sv_ttk.set_theme("dark")
+            self.create_widgets()
+            self.configure_widgets()
             self.root.mainloop()
+
+
+        def create_widgets(self):
+            """
+            Create the GUI widgets.
+            """
+            # Create a frame to hold all widgets
+            self.widget_frame = ttk.Frame(self.root)
+            self.widget_frame.pack()
+
+            # Pack all widgets into the frame
+            self.excel_button = ttk.Button(self.widget_frame, text="Select Excel File", command=self.select_excel_file)
+            self.excel_button.grid(row=2, column=0, pady=3)
+            self.excel_filepath_label = ttk.Label(self.widget_frame)
+            self.excel_filepath_label.grid(row=2, column=1)
             
+            self.pdf_button = ttk.Button(self.widget_frame, text="Select PDF File", command=self.select_pdf_file)
+            self.pdf_button.grid(row=1, column=0, pady=3)
+            self.pdf_filepath_label = ttk.Label(self.widget_frame)
+            self.pdf_filepath_label.grid(row=1, column=1)
+
+            self.output_button = ttk.Button(self.widget_frame, text="Select Output Location", command=self.select_output_directory)
+            self.output_button.grid(row=3, column=0, pady=3, padx=6)
+            self.output_directory_label = ttk.Label(self.widget_frame)
+            self.output_directory_label.grid(row=3, column=1)
+
+            self.output_filename_label = ttk.Label(self.widget_frame, text="Choose Output Filename")
+            self.output_filename_entry = ttk.Entry(self.widget_frame, font=("Arial", 14), width=60)
+            self.output_filename_label.grid(row=4, column=0)
+            self.output_filename_entry.grid(row=4, column=1, padx=10)
+
+
+            self.confirm_frame = ttk.Frame(self.root)
+            self.confirm_frame.pack(pady=10)
+
+            self.find_values_button = ttk.Button(self.confirm_frame, text="Find Values", command=self.find_values)
+            self.find_values_button.grid(row=0, column=0)
+            self.confirm_label = ttk.Label(self.confirm_frame, foreground='spring green')
+            self.confirm_label.grid(row=0, column=1, padx=6)
+
+
+        def configure_widgets(self):
+            """
+            Configure the GUI layout.
+            """
+            self.root.grid_columnconfigure(1, weight=1)
+            sv_ttk.set_theme("dark")
+                        
             
         def select_excel_file(self):
-            self.excel_filepath_label.config(text=askopenfilename())
+            """
+            Select an Excel file.
+            """
+            filepath = askopenfilename()
+            self.excel_filepath_label.config(text=filepath)
+            self.excel_filepath = filepath
             
         
         def select_pdf_file(self):
-            self.pdf_filepath_label.config(text=askopenfilename())
+            """
+            Select a PDF file.
+            """
+            filepath = askopenfilename()
+            self.pdf_filepath_label.config(text=filepath)
+            self.pdf_filepath = filepath
             
             
         def select_output_directory(self):
-            self.output_directory_label.config(text=askdirectory())
+            """
+            Select an output directory.
+            """
+            directory_path = askdirectory()
+            self.output_directory_label.config(text=directory_path)
+            self.output_directory = directory_path
             
             
-        # def update_output_filename(self):
+        def find_values(self):
+            try:
+                find_and_save_values_in_pdf(self.pdf_filepath, 
+                                            self.excel_filepath, 
+                                            self.output_directory, 
+                                            self.output_filename_entry.get(), "A", "B")
+                self.confirm_label.config(text="Success.")
+                
+            except Exception as error:
+                error_modal = tk.Toplevel(self.root)
+                error_modal.title("Error")
+                error_modal.geometry("750x350")
+                error_header = ttk.Label(error_modal, text="The following error has occurred:", font=("Arial", 24, "bold"), foreground='orange red')
+                error_header.pack()
+                error_text = ttk.Label(error_modal, text=error, font=("Arial", 14, "bold"), foreground='tomato')
+                error_text.pack()
+                error_traceback = ttk.Label(error_modal, text="\nThe full traceback is as follows:\n\n" + traceback.format_exc())
+                error_traceback.pack()
             
+        
+        def mainloop(self):
+            self.root.mainloop()
             
-def main():
-    pdf_filepath = 'sample.pdf'
-    xlsx_filepath = 'sample.xlsx'
-    gui = PDF_Reader_GUI()
     
 if __name__ == '__main__':
-    main()
+    gui = PDFReaderGUI()
+    gui.mainloop()
