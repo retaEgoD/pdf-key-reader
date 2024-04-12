@@ -6,7 +6,7 @@ import sv_ttk
 import ctypes
 import traceback
 
-from pdf_reader import find_and_save_values_in_pdf
+from pdf_key_reader import find_and_save_values_in_pdf
 
 ctypes.windll.shcore.SetProcessDpiAwareness(True)
 
