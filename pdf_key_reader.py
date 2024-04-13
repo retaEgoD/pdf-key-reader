@@ -7,6 +7,7 @@ from pathlib import Path
 PUNCTUATION = '''!()-[]{};:'"\,<>./?@#$%^&*_~'''
 
 def excel_column_to_int(column):
+    """Converts an excel column to its corresponding integer (A -> 1, AB -> 28 etc)"""
     n = len(column)
     column_num = 0
     for i in range(n):
@@ -78,18 +79,22 @@ def find_values_in_pdf(pdf_filepath, excel_filepath, excel_key_col, excel_val_co
     val_col = excel_column_to_int(excel_val_col.upper())
     
     pdf_words = read_pdf_text(pdf_filepath)
+    
+    # Convert .xlsx to .csv if necessary.
     if excel_filepath.suffix == '.xlsx':
         csv_dict = read_xlsx_to_dict(excel_filepath, key_col, val_col)
     else:
         csv_dict = read_csv_to_dict(excel_filepath, key_col, val_col)
-        
+    
+    # Get all keys in excel file and find occurring keys
     keys = set(csv_dict.keys())
     keys_in_text = []
     
     for key in keys:
         if key.lower() in pdf_words:
             keys_in_text.append(key)
-            
+    
+    # Get all values from excel file that are in pdf
     pairs = [(key, csv_dict[key]) for key in keys_in_text]
     return pairs
 

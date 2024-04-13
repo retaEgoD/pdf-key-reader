@@ -10,8 +10,6 @@ from pdf_key_reader import find_and_save_values_in_pdf
 
 ctypes.windll.shcore.SetProcessDpiAwareness(True)
 
-# TODO reorder excel and pdf, format and docs, seperate to changeable widgets and non-changeable widgets
-
 class PDFReaderGUI:
         
         def __init__(self):
@@ -20,9 +18,10 @@ class PDFReaderGUI:
             """
             
             self.root = tk.Tk()
-            self.root.geometry('1000x320')
+            self.root.geometry('1000x330')
             self.root.title('PDF Key Reader')
 
+            # Filepath variables
             self.pdf_filepath = ''
             self.excel_filepath = ''
             self.output_directory = ''
@@ -50,37 +49,41 @@ class PDFReaderGUI:
             self.widget_frame = ttk.Frame(self.root)
             self.widget_frame.pack()
 
-            # Pack all widgets into the frame
+            # Excel filepath widgets
             self.excel_button = ttk.Button(self.widget_frame, text="Select Excel File", command=self.select_excel_file)
-            self.excel_button.grid(row=2, column=0, pady=3)
+            self.excel_button.grid(row=1, column=0, pady=3)
             self.excel_filepath_label = ttk.Label(self.widget_frame)
-            self.excel_filepath_label.grid(row=2, column=1)
+            self.excel_filepath_label.grid(row=1, column=1)
             
+            # Excel column selection widgets
             self.excel_column_label = ttk.Label(self.widget_frame, text="Columns:")
             self.excel_key_entry = ttk.Entry(self.widget_frame, font=("Arial", 11), width=3)
             self.excel_value_entry = ttk.Entry(self.widget_frame, font=("Arial", 11), width=3)
             self.excel_key_entry.insert(0, 'A')
             self.excel_value_entry.insert(0, 'B')
-            self.excel_column_label.grid(row=1, column=2)
-            self.excel_key_entry.grid(row=2, column=2)
-            self.excel_value_entry.grid(row=2, column=3)
+            self.excel_column_label.grid(row=0, column=2)
+            self.excel_key_entry.grid(row=1, column=2)
+            self.excel_value_entry.grid(row=1, column=3)
             
+            # PDF filepath widgets
             self.pdf_button = ttk.Button(self.widget_frame, text="Select PDF File", command=self.select_pdf_file)
-            self.pdf_button.grid(row=1, column=0, pady=3)
+            self.pdf_button.grid(row=2, column=0, pady=3)
             self.pdf_filepath_label = ttk.Label(self.widget_frame)
-            self.pdf_filepath_label.grid(row=1, column=1)
+            self.pdf_filepath_label.grid(row=2, column=1)
 
+            # Output directory widgets
             self.output_button = ttk.Button(self.widget_frame, text="Select Output Location", command=self.select_output_directory)
             self.output_button.grid(row=3, column=0, pady=3, padx=6)
             self.output_directory_label = ttk.Label(self.widget_frame)
             self.output_directory_label.grid(row=3, column=1)
 
+            # Output filename widgets
             self.output_filename_label = ttk.Label(self.widget_frame, text="Choose Output Filename")
             self.output_filename_entry = ttk.Entry(self.widget_frame, font=("Arial", 14), width=60)
             self.output_filename_label.grid(row=4, column=0)
             self.output_filename_entry.grid(row=4, column=1, padx=10)
 
-
+            # Confirmation button widgets
             self.confirm_frame = ttk.Frame(self.root)
             self.confirm_frame.pack(pady=10)
 
@@ -127,6 +130,7 @@ class PDFReaderGUI:
             
         def find_values(self):
             try:
+                # Find the values and output the file
                 find_and_save_values_in_pdf(self.pdf_filepath, 
                                             self.excel_filepath, 
                                             self.output_directory, 
@@ -136,6 +140,7 @@ class PDFReaderGUI:
                 self.confirm_label.config(text="Success.")
                 
             except Exception as error:
+                # Open an error modal
                 error_modal = tk.Toplevel(self.root)
                 error_modal.title("Error")
                 error_modal.geometry("750x350")
